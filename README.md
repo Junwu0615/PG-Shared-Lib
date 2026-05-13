@@ -40,4 +40,19 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 </ul>
 </details>
 
+<br>
+
+### *B.　DEV Install Packages*
+```
+pip install -e .
+```
+
+<br>
+
+### *C.　Container Install Packages*
+```
+# requirements.txt
+git+https://github.com/Junwu0615/PG-Shared-Lib@main
+```
+
 <br><br><br>

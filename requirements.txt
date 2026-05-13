@@ -8,7 +8,7 @@ confluent-kafka==2.14.0
 kafka-python-ng==2.2.3
 python-dotenv==1.2.2
 certifi==2026.4.22
-httpx==0.28.
+httpx==0.28.0
 authlib==1.7.0
 cachetools==7.1.0
 attrs==26.1.0
