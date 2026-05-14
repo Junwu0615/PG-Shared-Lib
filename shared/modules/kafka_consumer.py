@@ -16,21 +16,21 @@ from confluent_kafka import (
 
 class KafkaConsumerManager:
     def __init__(self, logging, log_main_name: str,
-                 config: dict,
                  topic: str,
-                 topic_key: str):
+                 topic_key: str,
+                 config: dict=None):
 
         self.logging = logging
         self.main_name = log_main_name
 
-        _config = {
-            'bootstrap.servers': '127.0.0.1:9092',
-            'auto.offset.reset': 'earliest',
-            'enable.auto.commit': False
-        }
+        if config is None:
+            config = {
+                'bootstrap.servers': '127.0.0.1:9092',
+                'auto.offset.reset': 'earliest',
+                'enable.auto.commit': False
+            }
         if not isinstance(config, dict):
             raise
-        config = {**_config, **config}
         self.consumer = Consumer(config)
 
         target_partition = self._get_partition_id(
