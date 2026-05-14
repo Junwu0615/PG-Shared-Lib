@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 """
 TODO
-    Update Date: 2026-05-06
+    Update Date: 2026-05-14
     Description:
     Notice:
+        FIXME Loki 動態定義標籤待研究如何傳遞: extra, metadata
 """
-import logging, logstash
+import logging, logstash, logging_loki
 from colorlog import ColoredFormatter
 from logging.handlers import RotatingFileHandler
-from shared.configs import os
+from shared.configs import os, json
 from shared.configs.constant import LONG_FORMAT
-from shared.configs.settings import ELK_HOST, LOGSTASH_PORT
+from shared.configs.settings import LOKI_HOST, LOKI_PORT, LOGSTASH_HOST, LOGSTASH_PORT
 
 
 COLORS_CONFIG = {
@@ -56,9 +57,11 @@ class Logger:
                  file_name: str=None,
                  file_path: str=None,
                  is_logstash: bool=True,
+                 is_loki: bool=True,
                  max_bytes: int=(15 * 1024 * 1024),
                  backup_count: int=100,
                  logging_level: str='INFO',
+                 symbol_tag: dict=None,
                  **kwargs):
         """
         TODO 日誌等級說明：
@@ -69,8 +72,19 @@ class Logger:
             ERROR    40  錯誤     發生 Exception，特定功能失效但主程式未崩潰
             CRITICAL 50  嚴重     系統災難、無法繼續運行（如：資料庫連不上）
         """
+        _LOGSTASH_HOST = kwargs.get('LOGSTASH_HOST', LOGSTASH_HOST)
+        _LOGSTASH_PORT = kwargs.get('LOGSTASH_PORT', LOGSTASH_PORT)
+        _LOKI_HOST = kwargs.get('LOKI_HOST', LOKI_HOST)
+        _LOKI_PORT = kwargs.get('LOKI_PORT', LOKI_PORT)
+        _IS_KUBERNETES = kwargs.get('IS_KUBERNETES', 'false')
+        _IS_KUBERNETES = True if _IS_KUBERNETES.lower() == 'true' else False
+
+        if _IS_KUBERNETES:
+            is_logstash = False
+            is_loki = False
+
         self.logging_level = logging_level
-        self.symbol_tag = {**kwargs}
+        self.symbol_tag = {} if symbol_tag is None else symbol_tag
 
         # 1. 建立唯一 Logger 實體
         self.raw_logger = logging.getLogger(console_name.upper())
@@ -118,49 +132,49 @@ class Logger:
 
         # TODO 5. 設定 Logstash 輸出設定
         if is_logstash:
-            ls_handler = logstash.TCPLogstashHandler(ELK_HOST, LOGSTASH_PORT, version=1)
+            ls_handler = logstash.TCPLogstashHandler(_LOGSTASH_HOST, _LOGSTASH_PORT, version=1)
             self.raw_logger.addHandler(ls_handler)
 
 
-        # TODO 6. 建立一個 Filter 辨識路徑
+        # TODO 6. 設定 Loki 輸出設定
+        if is_loki:
+            loki_handler = logging_loki.LokiHandler(
+                url=f'http://{_LOKI_HOST}:{_LOKI_PORT}/loki/api/v1/push',
+                tags=self.symbol_tag,
+                version='1',
+            )
+            self.raw_logger.addHandler(loki_handler)
+
+
+        # TODO 7. 建立一個 Filter 辨識路徑
         path_filter = RelativePathFilter()
         self.raw_logger.addFilter(path_filter)
 
 
-        # 7. 封裝通用記錄器 Adapter ( 自定義標籤 )
+        # 8. 封裝通用記錄器 Adapter ( 自定義標籤 )
         self.logging = logging.LoggerAdapter(self.raw_logger, extra=self.symbol_tag)
 
 
     def debug(self, msg: str='', stack_level: int=2, **kwargs):
-        self.log_custom('debug'.lower(), msg, **{
-            'stack_level': stack_level,
-        })
+        self.log_custom('debug'.lower(), msg, stack_level, **kwargs)
 
 
     def info(self, msg: str='', stack_level: int=2, **kwargs):
-        self.log_custom('info'.lower(), msg, **{
-            'stack_level': stack_level,
-        })
+        self.log_custom('info'.lower(), msg, stack_level, **kwargs)
 
 
     def warning(self, msg: str='', stack_level: int=2, **kwargs):
-        self.log_custom('warning'.lower(), msg, **{
-            'stack_level': stack_level,
-        })
+        self.log_custom('warning'.lower(), msg, stack_level, **kwargs)
 
 
     def error(self, msg: str='', exc_info: bool=True, stack_level: int=2, **kwargs):
-        self.log_custom('error'.lower(), msg, **{
-            'stack_level': stack_level,
-            'exc_info': exc_info,
-        })
+        kwargs = {**{'exc_info': exc_info}, **kwargs}
+        self.log_custom('error'.lower(), msg, stack_level, **kwargs)
 
 
     def critical(self, msg: str='', exc_info: bool=True, stack_level: int=2, **kwargs):
-        self.log_custom('critical'.lower(), msg, **{
-            'stack_level': stack_level,
-            'exc_info': exc_info,
-        })
+        kwargs = {**{'exc_info': exc_info}, **kwargs}
+        self.log_custom('critical'.lower(), msg, stack_level, **kwargs)
 
 
     def log_custom(self, level_name: str, msg: str, stack_level: int=2, **kwargs):
@@ -168,18 +182,44 @@ class Logger:
         通用日誌記錄器
         """
         _exc_info = kwargs.get('exc_info', False)
-        _extra = kwargs.pop('extra_tags', {})
+        _extra = kwargs.pop('extra_tags', {}) # 客製化標籤
+        _full_extra = {**self.symbol_tag, **_extra} # 合併標籤供 Handler 使用
+
+        # metadata = ''
+        # if _extra:
+        #     _trans_json = json.dumps(_extra, ensure_ascii=False).strip()
+        #     metadata = f' | META:{_trans_json}'
+        # msg = f'{msg}{metadata}'
+
         if self.logging:
             method = getattr(self.logging, level_name, None)
             if method:
-                method(msg, exc_info=_exc_info, stacklevel=stack_level + 1, extra=_extra)
+                method(
+                    msg,
+                    exc_info=_exc_info,
+                    stacklevel=stack_level + 1,
+                    extra=_full_extra
+                )
 
 
     def notice(self, msg: str='', stack_level: int=2, **kwargs):
         """使用底層的 log(level_num, msg) 避開全域方法的依賴"""
-        _extra = kwargs.pop('extra_tags', {})
+        _extra = kwargs.pop('extra_tags', {}) # 客製化標籤
+        _full_extra = {**self.symbol_tag, **_extra} # 合併標籤供 Handler 使用
+
+        # metadata = ''
+        # if _extra:
+        #     _trans_json = json.dumps(_extra, ensure_ascii=False).strip()
+        #     metadata = f' | META:{_trans_json}'
+        # msg = f'{msg}{metadata}'
+
         if self.logging:
-            self.logging.log(NOTICE_LEVEL_NUM, msg, stacklevel=stack_level + 2, extra=_extra)
+            self.logging.log(
+                NOTICE_LEVEL_NUM,
+                msg,
+                stacklevel=stack_level + 2,
+                extra=_full_extra
+            )
 
 
     def title_log(self, level_name: str, msg: str, exc_info: bool=False, stack_level: int=2, **kwargs) -> str:

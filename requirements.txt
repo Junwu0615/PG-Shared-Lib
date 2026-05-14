@@ -14,3 +14,4 @@ cachetools==7.1.0
 attrs==26.1.0
 fastavro==1.12.2
 python-logstash==0.4.8
+python-logging-loki==0.3.1
