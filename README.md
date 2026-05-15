@@ -15,26 +15,35 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 
 .
+├── LICENSE
 ├── README.md
 ├── requirements.txt
-└── shared
-    ├── __init__.py
-    ├── configs
-    │   ├── __init__.py
-    │   ├── constant.py
-    │   └── settings.py
-    ├── modules
-    │   ├── __init__.py
-    │   ├── entry.py
-    │   ├── kafka_consumer.py
-    │   ├── kafka_producer.py
-    │   ├── log.py
-    │   └── mqtt.py
-    └── utils
-        ├── __init__.py
-        ├── env_config.py
-        ├── postgres_tools.py
-        └── tools.py
+├── setup.cfg
+├── setup.py
+├── shared
+│   ├── __init__.py
+│   ├── configs
+│   │   ├── __init__.py
+│   │   ├── constant.py
+│   │   └── settings.py
+│   ├── modules
+│   │   ├── __init__.py
+│   │   ├── entry.py
+│   │   ├── kafka_consumer.py
+│   │   ├── kafka_producer.py
+│   │   ├── log.py
+│   │   └── mqtt.py
+│   └── utils
+│       ├── __init__.py
+│       ├── env_config.py
+│       ├── postgres_tools.py
+│       └── tools.py
+└── shared.egg-info
+    ├── PKG-INFO
+    ├── SOURCES.txt
+    ├── dependency_links.txt
+    ├── requires.txt
+    └── top_level.txt
 ```
 
 </ul>
