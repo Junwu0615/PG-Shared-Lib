@@ -15,14 +15,24 @@ TODO
 """
 import signal
 from shared.configs import (
-    os, sys, time, load_dotenv, threading,
-    Callable, Iterator, Tuple, Any, Dict, List, Optional,
+    os,
+    sys,
+    time,
+    load_dotenv,
+    threading,
+    Callable,
+    Iterator,
+    Tuple,
+    Any,
+    Dict,
+    List,
+    Optional,
 )
 
 
 class EntryPoint:
-    _instance: Optional['EntryPoint'] = None
-    _initialized: Optional['EntryPoint'] = None
+    _instance: Optional["EntryPoint"] = None
+    _initialized: Optional["EntryPoint"] = None
     _lock: threading.Lock = threading.Lock()
 
     def __new__(cls, *args, **kwargs):
@@ -40,16 +50,13 @@ class EntryPoint:
                     cls._initialized = False
         return cls._instance
 
-
     def __enter__(self, **kwargs):
         """上下文管理器 : 開始"""
         return self
 
-
     def __exit__(self, exc_type, exc_val, exc_tb):
         """上下文管理器 : 結束"""
         return False
-
 
     def __init__(self, dotenv_path: Optional[str] = None, **kwargs):
         if self._initialized:
@@ -57,15 +64,12 @@ class EntryPoint:
 
         # 加載環境變數
         load_dotenv(dotenv_path=dotenv_path)
-        self.env = {
-            'APP_ENV': os.getenv('APP_ENV', 'UNDEFINED')
-        }
+        self.env = {"APP_ENV": os.getenv("APP_ENV", "UNDEFINED")}
 
         # 宣告變數
         self._stop_event = None
         self._threads = None
         self.logging = None
-
 
     def configure_setting(self, logging, **kwargs):
         """必要工具初始化"""
@@ -83,12 +87,13 @@ class EntryPoint:
 
         # 4. 初始化完成標記
         self._initialized = True
-        self.logging.notice(f'[{self.env['APP_ENV']} MODE] EntryPoint Initialized ...', stack_level=0)
-
+        self.logging.notice(
+            f'[{self.env["APP_ENV"]} MODE] EntryPoint Initialized ...', stack_level=0
+        )
 
     def start_service(self, func: callable, **kwargs):
         """TODO 多執行緒啟動統一途徑"""
-        _title = kwargs.get('title', 'UNKNOWN SERVICE')
+        _title = kwargs.get("title", "UNKNOWN SERVICE")
         service_thread = threading.Thread(
             target=func,
             daemon=False,
@@ -96,45 +101,44 @@ class EntryPoint:
         )
         service_thread.start()
         self._threads.append(service_thread)
-        self.logging.info(f'{_title} ... 已啟動')
-
+        self.logging.info(f"{_title} ... 已啟動")
 
     def stop_all_services(self, **kwargs):
         """TODO 安全地關閉多執行緒"""
         if self._threads:
-            self.logging.notice('正在向所有執行緒發出停止訊號...', stack_level=0)
-            self._stop_event.set() # 發出停止訊號
+            self.logging.notice("正在向所有執行緒發出停止訊號...", stack_level=0)
+            self._stop_event.set()  # 發出停止訊號
 
             # 等待所有執行緒結束
             for thread in self._threads:
                 if thread.is_alive():
-                    self.logging.info(f'[{thread.name}] 等待執行緒結束...')
+                    self.logging.info(f"[{thread.name}] 等待執行緒結束...")
                     thread.join(timeout=10.0)
                     if thread.is_alive():
-                        self.logging.error(f'[{thread.name}] 執行緒超時未結束，強制繼續程序 ...')
+                        self.logging.error(
+                            f"[{thread.name}] 執行緒超時未結束，強制繼續程序 ..."
+                        )
 
-            self.logging.title_log('notice', '所有執行緒服務已確實關閉', stack_level=0)
+            self.logging.title_log("notice", "所有執行緒服務已確實關閉", stack_level=0)
             time.sleep(0.1)
-
 
     def _setup_signals(self, **kwargs):
         """TODO 偵測系統關閉訊號"""
         for sig in (signal.SIGTERM, signal.SIGINT):
             signal.signal(sig, self._handle_exit)
 
-
     def _handle_exit(self, signum, frame, **kwargs):
         """安全關閉程序 1"""
         self.stop_all_services()
         time.sleep(1)
-        self.logging.warning(f'[Graceful Shutdown # 1] Received signal [{signum}] ...', stack_level=2)
-
+        self.logging.warning(
+            f"[Graceful Shutdown # 1] Received signal [{signum}] ...", stack_level=2
+        )
 
     def _finalize(self, **kwargs):
         """安全關閉程序 2"""
-        self.logging.warning(f'[Graceful Shutdown # 2] sys.exit(0)', stack_level=2)
+        self.logging.warning(f"[Graceful Shutdown # 2] sys.exit(0)", stack_level=2)
         sys.exit(0)
-
 
     def main(self, **kwargs):
         """
@@ -147,11 +151,10 @@ class EntryPoint:
                 self.run()
 
         except Exception as e:
-            self.logging.critical(f'Unhandled Exception', exc_info=True, stack_level=0)
+            self.logging.critical(f"Unhandled Exception", exc_info=True, stack_level=0)
 
         finally:
             self._finalize()
-
 
     def run(self, **kwargs):
         """

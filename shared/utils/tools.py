@@ -2,10 +2,9 @@
 from shared.configs import yaml, inspect, datetime, timedelta, timezone
 
 
-def get_now(hours: int=None,
-            minutes: int=None,
-            seconds: int=None,
-            tzinfo: timezone=None) -> datetime:
+def get_now(
+    hours: int = None, minutes: int = None, seconds: int = None, tzinfo: timezone = None
+) -> datetime:
     """
     return target_time
         *.isoformat() => ISO 8601 格式字串. ex: "YYYY-MM-DDTHH:MM:SS.mmmmmm+00:00"
@@ -32,7 +31,7 @@ def get_now(hours: int=None,
 
 
 def parsing_yaml(file_path: str) -> dict:
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         config = yaml.safe_load(f)
     return config
 
