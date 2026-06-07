@@ -224,14 +224,14 @@ class MqttServer:
             if current_qsize > 100:
                 if self._msg_count % 100 == 0:
                     self.logging.warning(
-                        f"高負載警報 => Queue length: {current_qsize}", stack_level=2
+                        f"高負載警報 → Queue length: {current_qsize}", stack_level=2
                     )
 
             elif current_qsize <= 1:
                 current_time = time.time()
                 if current_time - self._last_report_time > 5:
                     self.logging.info(
-                        f"✅ 隊列已清空/穩定 => Queue length: {current_qsize}",
+                        f"✅ 隊列已清空/穩定 → Queue length: {current_qsize}",
                         stack_level=2,
                     )
                     self._last_report_time = current_time
@@ -463,7 +463,7 @@ class MqttServer:
                             # * 當佇列長度超過 100 時，記錄警告訊息 ( 避免頻繁洗版 )
                             # ---------------------------------------------
                             self.logging.warning(
-                                f"[🔥 {worker_title}] 高負載警報 => "
+                                f"[🔥 {worker_title}] 高負載警報 → "
                                 f"Queue length: {current_qsize}",
                                 stack_level=2,
                             )
@@ -476,7 +476,7 @@ class MqttServer:
                             current_time - self._last_report_time > 5
                         ):  # 至少間隔 5 秒才報一次消耗完畢
                             self.logging.info(
-                                f"[✅ {worker_title}] 隊列已清空/穩定 => "
+                                f"[✅ {worker_title}] 隊列已清空/穩定 → "
                                 f"Queue length: {current_qsize}",
                                 stack_level=2,
                             )

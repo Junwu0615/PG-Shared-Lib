@@ -7,10 +7,10 @@ def get_now(
 ) -> datetime:
     """
     return target_time
-        *.isoformat() => ISO 8601 格式字串. ex: "YYYY-MM-DDTHH:MM:SS.mmmmmm+00:00"
-        *.timestamp() => UNIX 時間戳. ex: 1690000000.123456
-        *.timestamp() * 1000 => UNIX 時間戳（毫秒）. ex: 1690000000123.456
-        *.timestamp() * 1000000 => UNIX 時間戳（微秒）. ex: 1690000000123456.0
+        *.isoformat() → ISO 8601 格式字串. ex: "YYYY-MM-DDTHH:MM:SS.mmmmmm+00:00"
+        *.timestamp() → UNIX 時間戳. ex: 1690000000.123456
+        *.timestamp() * 1000 → UNIX 時間戳（毫秒）. ex: 1690000000123.456
+        *.timestamp() * 1000000 → UNIX 時間戳（微秒）. ex: 1690000000123456.0
     """
 
     target_time = datetime.utcnow()

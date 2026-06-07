@@ -50,7 +50,7 @@ class KafkaProducerManager:
                 self.logging.error(f"[Topic: {topic}] 尚未定義 Schema", exc_info=False)
                 return
 
-            # 將 dict 序列化為 Avro 二進制格式 => JDBC Sink
+            # 將 dict 序列化為 Avro 二進制格式 → JDBC Sink
             ctx = SerializationContext(topic, MessageField.VALUE)
             value_bytes = serializer(payload, ctx)
 

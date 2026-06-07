@@ -115,7 +115,7 @@ class KafkaConsumerManager:
 
         if msg.error():
             if msg.error().code() == KafkaError._PARTITION_EOF:
-                # 當前消費完畢 => 目前沒新訊息，繼續等待 ...
+                # 當前消費完畢 → 目前沒新訊息，繼續等待 ...
                 self.logging.info(
                     f"[{self.main_name}] topic: {msg.topic()} | partition: {msg.partition()}"
                 )
