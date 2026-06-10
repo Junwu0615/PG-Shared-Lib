@@ -14,6 +14,7 @@
 tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts'
 
 .
+├── .pre-commit-config.yaml
 ├── LICENSE
 ├── README.md
 ├── requirements.txt
