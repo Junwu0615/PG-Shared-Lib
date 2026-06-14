@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from shared.configs import yaml, inspect, datetime, timedelta, timezone
+from shared.configs import os, yaml, inspect, datetime, timedelta, timezone
 
 
 def get_now(
@@ -43,3 +43,19 @@ def awesome_func() -> str:
     caller_name = caller_frame.f_code.co_name
     caller_file = caller_frame.f_code.co_filename
     return caller_name
+
+
+def write_heartbeat(heartbeat_path: str = None, status: str = "OK"):
+    """
+    # 創建心跳檔，讓 K8s 則知程式活著
+    # 刪除心跳檔，讓 K8s 則知程式掛了
+    """
+    if heartbeat_path is None:
+        raise ValueError("heartbeat_path is None, Please Check <heartbeat_path: str>")
+
+    _makedirs = "/".join(heartbeat_path.split("/")[:-1])
+    if _makedirs != "":
+        os.makedirs(_makedirs, exist_ok=True)
+
+    with open(heartbeat_path, "w") as f:
+        f.write(status)
