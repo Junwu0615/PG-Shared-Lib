@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from shared.configs import os, yaml, inspect, datetime, timedelta, timezone
+from shared.configs import os, yaml, logging, inspect, datetime, timedelta, timezone
 
 
 def get_now(
@@ -53,9 +53,14 @@ def write_heartbeat(heartbeat_path: str = None, status: str = "OK"):
     if heartbeat_path is None:
         raise ValueError("heartbeat_path is None, Please Check <heartbeat_path: str>")
 
-    _makedirs = "/".join(heartbeat_path.split("/")[:-1])
-    if _makedirs != "":
-        os.makedirs(_makedirs, exist_ok=True)
+    try:
+        # 強制建立父級目錄
+        _makedirs = os.path.dirname(heartbeat_path)
+        if _makedirs != "":
+            os.makedirs(_makedirs, exist_ok=True)
 
-    with open(heartbeat_path, "w") as f:
-        f.write(status)
+        with open(heartbeat_path, "w") as f:
+            f.write(status)
+
+    except Exception as e:
+        logging.error("卡權限或路徑錯誤 => 無法寫入心跳檔案", exc_info=True)
