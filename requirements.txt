@@ -1,3 +1,8 @@
+# * ====== * linux requirements * ====== *
+#sudo apt update && sudo apt install -y libpq-dev python3-dev build-essential
+
+
+# * ====== * python packages * ====== *
 setuptools==75.1.0
 psycopg2==2.9.11
 colorlog==6.9.0
