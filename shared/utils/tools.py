@@ -63,4 +63,4 @@ def write_heartbeat(heartbeat_path: str = None, status: str = "OK"):
             f.write(status)
 
     except Exception as e:
-        logging.error("卡權限或路徑錯誤 => 無法寫入心跳檔案", exc_info=True)
+        logging.error("卡權限或路徑錯誤 ➔ 無法寫入心跳檔案", exc_info=True)
